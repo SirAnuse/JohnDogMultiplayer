@@ -91,6 +91,44 @@ namespace JohnDogServer
             cmd.ExecuteScalar();
         }
 
+       
+
+        public string GetEquipment(string username)
+        {
+            JohnDog.Say("DB", "Getting equips");
+            string id = FindIDFromName(username);
+            JohnDog.Say("DB", "AccID: " + id);
+            string charname = FindCharNameFromID(id);
+            JohnDog.Say("DB", "Charname: " + charname);
+            MySqlCommand cmd = CreateQuery();
+            cmd.CommandText =
+                "SELECT equipment FROM inventories WHERE accId=@accId AND charname=@charname;";
+            cmd.Parameters.AddWithValue("@accId", username);
+            cmd.Parameters.AddWithValue("@charname", charname);
+            string meme = (string)cmd.ExecuteScalar();
+            JohnDog.Say("DB", "Fetched: " + meme);
+            //return meme;
+            return "1 2 -1 -1";
+        }
+
+        public string GetInventory (string username)
+        {
+            string id = FindIDFromName(username);
+            string charname = FindCharNameFromID(id);
+            MySqlCommand cmd = CreateQuery();
+            cmd.CommandText =
+                "SELECT * FROM inventories WHERE accId=@accId AND charname=@charname;";
+            cmd.Parameters.AddWithValue("@accId", username);
+            cmd.Parameters.AddWithValue("@charname", charname);
+            return "-1 -1 -1 -1 -1 -1 -1 -1";
+            using (MySqlDataReader rdr = cmd.ExecuteReader())
+            {
+                if (!rdr.HasRows) return null;
+                rdr.Read();
+                //return rdr.GetString("inventory");
+            }
+        }
+
         public string FindIDFromName (string username)
         {
             MySqlCommand cmd = CreateQuery();
@@ -102,6 +140,20 @@ namespace JohnDogServer
                 if (!rdr.HasRows) return null;
                 rdr.Read();
                 return Convert.ToString(rdr.GetInt32("id"));
+            }
+        }
+
+        public string FindCharNameFromID(string id)
+        {
+            MySqlCommand cmd = CreateQuery();
+            cmd.CommandText =
+                "SELECT * FROM inventories WHERE accId=@accId;";
+            cmd.Parameters.AddWithValue("@accId", id);
+            using (MySqlDataReader rdr = cmd.ExecuteReader())
+            {
+                if (!rdr.HasRows) return null;
+                rdr.Read();
+                return rdr.GetString("charname");
             }
         }
 
@@ -128,6 +180,16 @@ namespace JohnDogServer
             MySqlCommand cmd = CreateQuery();
             cmd.CommandText = "UPDATE accounts SET inUse=1 WHERE username=@username;";
             cmd.Parameters.AddWithValue("@username", username);
+            cmd.ExecuteScalar();
+        }
+
+        public void SetCodeRedeemed(string gcode, string username)
+        {
+            if (username == null || gcode == null) return;
+            MySqlCommand cmd = CreateQuery();
+            cmd.CommandText = "UPDATE giftcodes SET redeemed=1, redeemedBy=@username WHERE code=@gcode;";
+            cmd.Parameters.AddWithValue("@username", username);
+            cmd.Parameters.AddWithValue("@gcode", gcode);
             cmd.ExecuteScalar();
         }
 

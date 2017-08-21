@@ -4,8 +4,10 @@ using System.Net;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
+using System.Drawing;
 using System.Text.RegularExpressions;
 using JohnDogServer;
+using Console = Colorful.Console;
 
 public class Server
 {
@@ -130,6 +132,7 @@ public class Server
                 else if (thing == "REGISTER REQUEST") action = "REGISTER REQUEST";
                 else if (thing == "VERSION CHECK") action = "VERSION CHECK";
                 else if (thing.ToUpper() == "MESSAGE") action = "MESSAGE";
+                else if (thing.ToUpper() == "INVENTORY ") action = "INVENTORY";
             }
             JohnDog.Say("Command Manager", "Command: " + action.ToUpper());
             latestcommand = thing;
@@ -181,6 +184,7 @@ public class Server
                 {
                     if (db.CheckCodeExists(cmds[1]))
                     {
+                        db.SetCodeRedeemed(cmds[1], username);
                         JohnDog.Say("Database", "Successful redeem");
                         contents = db.GetGiftCodeContents(cmds[1]);
                         s.Send(asen.GetBytes("REDEEM:SUCCESS " + cmds[1] + " " + contents));
@@ -191,9 +195,31 @@ public class Server
                         s.Send(asen.GetBytes("REDEEM:FAILURE " + cmds[1]));
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex, Color.Red);
                     s.Send(asen.GetBytes("REDEEM:NOCODE"));
+                }
+            }
+            else if (action.ToUpper() == "INVENTORY")
+            {
+                string[] cmds = ConvertToCMDs(thing);
+                if (cmds[1] == "LIST")
+                {
+                    string equips = db.GetEquipment(username);
+                    string inv = db.GetInventory(username);
+                    if (equips == null) JohnDog.Say("Inventory List", "equips null??");
+                    if (inv == null) JohnDog.Say("Inventory List", "inv null??");
+                    JohnDog.Say("Inventory List", "Sending - INVENTORY:LIST " + equips + " " + inv);
+                    s.Send(asen.GetBytes("INVENTORY:LIST " + equips + " " + inv));
+                }
+                else if (cmds[1] == "DROP")
+                {
+
+                }
+                else if (cmds[1] == "EQUIP")
+                {
+
                 }
             }
             if (isCheckingVersion) s.Send(asen.GetBytes("VERSION " + version));
