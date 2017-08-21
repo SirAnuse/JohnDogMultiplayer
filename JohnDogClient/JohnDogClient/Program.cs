@@ -39,8 +39,8 @@ namespace JohnDogClient
 
             try
             {
-                Swords.SetSwords();
-                Shields.SetShields();
+                Items.Add(Shields.WoodenShield.ID, Shields.WoodenShield);
+                Items.Add(Shields.IronShield.ID, Shields.IronShield);
                 SayNoNewLine("Client", "Welcome to John Dog!");
                 Say("Client", "Just going to perform a version check with the server.");
                 client.Connect("127.0.0.1", 8000);
@@ -91,7 +91,7 @@ namespace JohnDogClient
                             else if (response == "INVALID CREDENTIALS")
                             {
                                 Console.Clear();
-                                SayNoNewLine("Client", "Username or password was incorrect!");
+                                SayNoNewLine("Client", "Username or password was incorrect! Remember that usernames and passwords are CaSe SeNsItIvE!");
                                 Console.ReadKey();
                             }
                             break;
@@ -317,53 +317,44 @@ namespace JohnDogClient
         public static void ParseInventory(string data)
         {
             // Convert data to an array separated by spaces
+            List<int> InventoryList = new List<int>();
             string[] Inventory = ConvertToCMDs(data);
 
             // [0] is 'INVENTORY:LIST'
             // [1] is the username of the user which sent it
             // [2] and onwards is the message itself
 
-            int[] inventory = new int[15];
-
-
-            // Convert inventory to int array
-            for (int i = 1; i < 12; i++)
-            {
-                int meme = 0;
-                if (Int32.TryParse(Inventory[i], out meme))
-                {
-                    inventory[i] = meme;
-                }
-            }
-
+            for (int i = 1; i < Inventory.Length; i++)
+                InventoryList.Add(Convert.ToInt32(Inventory[i]));
 
             // List inventory
-            for (int i = 0; i < 13; i++)
+            for (int i = 0; i < InventoryList.Count; i++)
             {
+                int a = i + 1;
                 if (i == 0)
                 {
-                    if (inventory[i] == -1) Say("Slot " + i + " (Weapon Slot)", "Empty");
-                    else Say("Slot " + i + " (Weapon Slot)", Items[inventory[i]].Name);
+                    if (InventoryList[i] == -1) Say("Slot " + a + " (Weapon Slot)", "Empty");
+                    else Say("Slot " + a + " (Weapon Slot)", Items[InventoryList[i]].Name);
                 }
                 else if (i == 1)
                 {
-                    if (inventory[i] == -1) Say("Slot " + i + " (Ability Slot)", "Empty");
-                    else Say("Slot " + i + " (Ability Slot)", Items[inventory[i]].Name);
+                    if (InventoryList[i] == -1) Say("Slot " + a + " (Ability Slot)", "Empty");
+                    else Say("Slot " + a + " (Ability Slot)", Items[InventoryList[i]].Name);
                 }
                 else if (i == 2)
                 {
-                    if (inventory[i] == -1) Say("Slot " + i + " (Armor Slot)", "Empty");
-                    else Say("Slot " + i + " (Armor Slot)", Items[inventory[i]].Name);
+                    if (InventoryList[i] == -1) Say("Slot " + a + " (Armor Slot)", "Empty");
+                    else Say("Slot " + a + " (Armor Slot)", Items[InventoryList[i]].Name);
                 }
                 else if (i == 3)
                 {
-                    if (inventory[i] == -1) Say("Slot " + i + " (Ring Slot)", "Empty");
-                    else Say("Slot " + i + " (Ring Slot)", Items[inventory[i]].Name);
+                    if (InventoryList[i] == -1) Say("Slot " + a + " (Ring Slot)", "Empty");
+                    else Say("Slot " + a + " (Ring Slot)", Items[InventoryList[i]].Name);
                 }
                 else
                 {
-                    if (inventory[i] == -1) Say("Slot " + i, "Empty");
-                    else Say("Slot " + i, Items[inventory[i]].Name);
+                    if (InventoryList[i] == -1) Say("Slot " + a, "Empty");
+                    else Say("Slot " + a, Items[InventoryList[i]].Name);
                 }
             }
         }

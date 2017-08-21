@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 using System.Drawing;
+using System.Linq;
 using System.Text.RegularExpressions;
 using JohnDogServer;
 using Console = Colorful.Console;
@@ -99,6 +100,7 @@ public class Server
 
     private static void HandleClientComm(object client)
     {
+        int bNo = 0;
         string username = "";
         bool isCheckingVersion = false;
         Thread versionCheck = new Thread(new ParameterizedThreadStart(HandleVersionCheck));
@@ -215,7 +217,60 @@ public class Server
                 }
                 else if (cmds[1] == "DROP")
                 {
+                    JohnDog.Say("Debug Manager", "Drop function accessed.");
 
+                    string[] o = ConvertToCMDs(db.GetEquipment(username));
+                    string[] p = ConvertToCMDs(db.GetInventory(username));
+                    string[] a = ConvertToCMDs(db.GetEquipment(username) + " " + db.GetInventory(username));
+
+                    // Inv+Equips List
+                    List<int> c = new List<int>();
+
+                    // Equips List
+                    List<int> d = new List<int>();
+
+                    // Inv List
+                    List<int> e = new List<int>();
+ 
+                    for (int i = 0; i < a.Length; i++)
+                         c.Add(Convert.ToInt32(a[i]));
+
+                    for (int i = 0; i < o.Length; i++)
+                        d.Add(Convert.ToInt32(o[i]));
+
+                    for (int i = 0; i < p.Length; i++)
+                        e.Add(Convert.ToInt32(p[i]));
+
+                    int DropInt;
+                    if (Int32.TryParse(cmds[2], out DropInt))
+                    {
+                        if (c[DropInt - 1] != -1)
+                        {
+                            c[DropInt - 1] = -1;
+                            if (DropInt - 1 <= 3)
+                            {
+                                d[DropInt - 1] = -1;
+                                string equipmentnew = String.Join(" ", d.ToArray());
+                                JohnDog.Say("Debug Manager", "Sending equipment: " + equipmentnew);
+                                db.SetEquipment(username, equipmentnew);
+                                s.Send(asen.GetBytes("DROPSUCCESS"));
+                            }
+                            if (DropInt - 1 <= 11)
+                            {
+                                e[DropInt - 1] = -1;
+                                string inventorynew = String.Join(" ", e.ToArray());
+                                JohnDog.Say("Debug Manager", "Sending inventory: " + inventorynew);
+                                db.SetEquipment(username, inventorynew);
+                                s.Send(asen.GetBytes("DROPSUCCESS"));
+                            }
+                        }
+                        else s.Send(asen.GetBytes("DROPFAIL:C2"));
+                    }
+                    else
+                    {
+                        JohnDog.Say("Error", "Dropfail:C1");
+                        s.Send(asen.GetBytes("DROPFAIL:C1"));
+                    }
                 }
                 else if (cmds[1] == "EQUIP")
                 {
@@ -223,7 +278,22 @@ public class Server
                 }
             }
             if (isCheckingVersion) s.Send(asen.GetBytes("VERSION " + version));
-            if (latestcommand == "") JohnDog.Say("Client Manager", "Client sent empty byte [ID: " + joe + "] - " + clients[joe].RemoteEndPoint);
+            if (latestcommand == "")
+            {
+                if (bNo >= 5)
+                {
+                    JohnDog.Say("Client Manager", "Client sent too many empty bytes [ID: " + joe + "] - " + clients[joe].RemoteEndPoint + ". Client disconnected.");
+                    john = false;
+                    clientNames.Remove(username);
+                    try { db.UnlockAccount(username); }
+                    catch { }
+                }
+                else
+                {
+                    bNo++;
+                    JohnDog.Say("Client Manager", "Client sent empty byte [ID: " + joe + "] - " + clients[joe].RemoteEndPoint);
+                }
+            }
             else JohnDog.Say("Client Manager", "Client command received [ID: " + joe + "] - " + latestcommand);
         }
     }

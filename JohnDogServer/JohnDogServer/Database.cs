@@ -95,38 +95,58 @@ namespace JohnDogServer
 
         public string GetEquipment(string username)
         {
-            JohnDog.Say("DB", "Getting equips");
+            JohnDog.Say("Database Manager", "Getting equipment for " + username);
             string id = FindIDFromName(username);
-            JohnDog.Say("DB", "AccID: " + id);
             string charname = FindCharNameFromID(id);
-            JohnDog.Say("DB", "Charname: " + charname);
             MySqlCommand cmd = CreateQuery();
             cmd.CommandText =
                 "SELECT equipment FROM inventories WHERE accId=@accId AND charname=@charname;";
-            cmd.Parameters.AddWithValue("@accId", username);
+            cmd.Parameters.AddWithValue("@accId", Convert.ToInt32(id));
             cmd.Parameters.AddWithValue("@charname", charname);
             string meme = (string)cmd.ExecuteScalar();
-            JohnDog.Say("DB", "Fetched: " + meme);
-            //return meme;
-            return "1 2 -1 -1";
+            return meme;
+        }
+
+        public void SetEquipment(string username, string equips)
+        {
+            JohnDog.Say("Database Manager", "Getting inventory for " + username);
+            string id = FindIDFromName(username);
+            string charname = FindCharNameFromID(id);
+            MySqlCommand cmd = CreateQuery();
+            cmd.CommandText =
+                "UPDATE inventories SET equipment=@equips WHERE accId=@accId AND charname=@charname;";
+            cmd.Parameters.AddWithValue("@equips", equips);
+            cmd.Parameters.AddWithValue("@accId", id);
+            cmd.Parameters.AddWithValue("@charname", charname);
+            cmd.ExecuteScalar();
         }
 
         public string GetInventory (string username)
         {
+            JohnDog.Say("Database Manager", "Getting inventory for " + username);
             string id = FindIDFromName(username);
             string charname = FindCharNameFromID(id);
             MySqlCommand cmd = CreateQuery();
             cmd.CommandText =
-                "SELECT * FROM inventories WHERE accId=@accId AND charname=@charname;";
-            cmd.Parameters.AddWithValue("@accId", username);
+                "SELECT inventory FROM inventories WHERE accId=@accId AND charname=@charname;";
+            cmd.Parameters.AddWithValue("@accId", Convert.ToInt32(id));
             cmd.Parameters.AddWithValue("@charname", charname);
-            return "-1 -1 -1 -1 -1 -1 -1 -1";
-            using (MySqlDataReader rdr = cmd.ExecuteReader())
-            {
-                if (!rdr.HasRows) return null;
-                rdr.Read();
-                //return rdr.GetString("inventory");
-            }
+            string meme = (string)cmd.ExecuteScalar();
+            return meme;
+        }
+
+        public void SetInventory(string username, string inventory)
+        {
+            JohnDog.Say("Database Manager", "Getting inventory for " + username);
+            string id = FindIDFromName(username);
+            string charname = FindCharNameFromID(id);
+            MySqlCommand cmd = CreateQuery();
+            cmd.CommandText =
+                "UPDATE inventories SET inventory=@inv WHERE accId=@accId AND charname=@charname;";
+            cmd.Parameters.AddWithValue("@inv", inventory);
+            cmd.Parameters.AddWithValue("@accId", id);
+            cmd.Parameters.AddWithValue("@charname", charname);
+            cmd.ExecuteScalar();
         }
 
         public string FindIDFromName (string username)
